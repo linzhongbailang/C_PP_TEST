@@ -45,14 +45,9 @@ message(STATUS "CMAKE_C_COMPILER1 = ${CMAKE_C_COMPILER}")
 
 
 
-add_subdirectory(ipc_semaphore_test)
-add_subdirectory(test)
 
-add_subdirectory(ipc_share_mem_test/share_mem0)
-add_subdirectory(ipc_share_mem_test/share_mem1)
-add_subdirectory(ipc_share_mem_test/share_mem2)
 
-#add_subdirectory(virtual_test)
 
-#add_executable(ipc_semaphore_test main.c)
+add_executable(share_mem1 	main.c
+									mysem.c)
 

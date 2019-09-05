@@ -176,14 +176,16 @@ int main(int argc, char **argv)
         memset(file_data,0,IMAGE_X*IMAGE_Y*6);
         //camera_image_save();
         fread(file_data,IMAGE_X*IMAGE_Y*6,1,fp_nv12_video);
-
-        nv12_yuv_4s_pro(file_data,image_index++);
-        
         if(feof(fp_nv12_video)!=0)
         {
             printf("------%s (%d)   read over\n", __func__,__LINE__);    
             break;
         }
+
+        //
+        nv12_yuv_4s_pro(file_data,image_index++);
+        
+        
     }
     free(file_data);
     

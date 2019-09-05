@@ -3,11 +3,25 @@
 #include <string.h>
 
 
-#define IMAGE_X_VAILD       700//700
-#define IMAGE_Y_VAILD       480
-
 #define IMAGE_X       736
 #define IMAGE_Y       480
+
+
+
+#define ROI_X1              2
+#define ROI_Y1              2
+#define ROI_X2              IMAGE_X-2
+#define ROI_Y2              IMAGE_Y-2
+
+
+
+#define IMAGE_X_VAILD       (ROI_X2-ROI_X1)//700
+#define IMAGE_Y_VAILD       (ROI_Y2-ROI_Y1)
+
+
+
+
+
 
 static int Image_save(char * file_name,unsigned char *data_ptr,int len)
 {
@@ -29,7 +43,7 @@ static int Image_save(char * file_name,unsigned char *data_ptr,int len)
     return 1;
 }
 
-static intnv12_save(int x,int y,int x_vail,int y_vail,char *data,char * file_name)
+static int intnv12_save(int x,int y,int x_vail,int y_vail,char *data,char * file_name)
 {
     
     int ret=0;
@@ -107,35 +121,77 @@ static int camera_image_save(void)
 
 
 }
+static int nv12_roi(char *src_data,int origin_wid,int origin_height,char *des_data,int start_x,int start_y,int end_x,int end_y)
+{
+    int roi_wid=end_x-start_x;
+    int roi_height=end_y-start_y;
+    //提取y
+    for(int i=start_y;i<end_y;i++)
+    {
+        memcpy(des_data+i*roi_wid,src_data+i*origin_wid+start_x,roi_wid);
+    }
+    //提取 uv
+    for(int i=start_y/2;i<end_y/2;i++)
+    {
+        memcpy( des_data+roi_wid*(end_y-start_y)+i*(end_x-start_x),
+                src_data+origin_wid*origin_height+i*origin_wid+start_x,
+                end_x-start_x);
+    }
+
+}
 static int nv12_yuv_4s_pro(char * data,int image_index)
 {
     //static int image_idex=0;
     char file_name[50]={0,};
+    char * roi_data;
+
+    roi_data=malloc((ROI_Y2-ROI_Y1)*(ROI_X2-ROI_X1)*3/2);
+    if(roi_data==NULL)
+    {
+        printf("------%s malloc roi data failed\n", __func__);
+        return -1;
+    }
+        
     
     memset(file_name,0,sizeof(file_name));
+    memset(roi_data,0,(ROI_Y2-ROI_Y1)*(ROI_X2-ROI_X1)*3/2);
     //sprintf(file_name,"NV12_%dx%d_front_%d.yuv",IMAGE_X,IMAGE_Y,image_index);
     //Image_save(file_name,data,IMAGE_X*IMAGE_Y*3/2);
     sprintf(file_name,"NV12_%dx%d_front_%d.yuv",IMAGE_X_VAILD,IMAGE_Y_VAILD,image_index);
-    intnv12_save(IMAGE_X,IMAGE_Y,IMAGE_X_VAILD,IMAGE_Y_VAILD,data,file_name);
+    //intnv12_save(IMAGE_X,IMAGE_Y,IMAGE_X_VAILD,IMAGE_Y_VAILD,data,file_name);
+    nv12_roi(data, IMAGE_X, IMAGE_Y, roi_data, ROI_X1, ROI_Y1, ROI_X2,ROI_Y2);
+    Image_save(file_name,roi_data,(ROI_X2-ROI_X1)*(ROI_Y2-ROI_Y1)*3/2);
 
+
+#if 1    
     memset(file_name,0,sizeof(file_name));
+    memset(roi_data,0,(ROI_Y2-ROI_Y1)*(ROI_X2-ROI_X1)*3/2);
     //sprintf(file_name,"NV12_%dx%d_rear_%d.yuv",IMAGE_X,IMAGE_Y,image_index);
     //Image_save(file_name,data+IMAGE_X*IMAGE_Y*3/2,IMAGE_X*IMAGE_Y*3/2);
     sprintf(file_name,"NV12_%dx%d_rear_%d.yuv",IMAGE_X_VAILD,IMAGE_Y_VAILD,image_index);
-    intnv12_save(IMAGE_X,IMAGE_Y,IMAGE_X_VAILD,IMAGE_Y_VAILD,data+IMAGE_X*IMAGE_Y*3/2*1,file_name);
+    //intnv12_save(IMAGE_X,IMAGE_Y,IMAGE_X_VAILD,IMAGE_Y_VAILD,data+IMAGE_X*IMAGE_Y*3/2*1,file_name);
+    nv12_roi( data+IMAGE_X*IMAGE_Y*3/2*1, IMAGE_X, IMAGE_Y,roi_data, ROI_X1, ROI_Y1, ROI_X2,ROI_Y2);
+    Image_save(file_name,roi_data,(ROI_X2-ROI_X1)*(ROI_Y2-ROI_Y1)*3/2);
 
     memset(file_name,0,sizeof(file_name));
+    memset(roi_data,0,(ROI_Y2-ROI_Y1)*(ROI_X2-ROI_X1)*3/2);
     //sprintf(file_name,"NV12_%dx%d_left_%d.yuv",IMAGE_X,IMAGE_Y,image_index);
     //Image_save(file_name,data+IMAGE_X*IMAGE_Y*3/2*2,IMAGE_X*IMAGE_Y*3/2);
     sprintf(file_name,"NV12_%dx%d_left_%d.yuv",IMAGE_X_VAILD,IMAGE_Y_VAILD,image_index);
-    intnv12_save(IMAGE_X,IMAGE_Y,IMAGE_X_VAILD,IMAGE_Y_VAILD,data+IMAGE_X*IMAGE_Y*3,file_name);
+    //intnv12_save(IMAGE_X,IMAGE_Y,IMAGE_X_VAILD,IMAGE_Y_VAILD,data+IMAGE_X*IMAGE_Y*3,file_name);
+    nv12_roi(data+IMAGE_X*IMAGE_Y*3/2*2, IMAGE_X, IMAGE_Y, roi_data, ROI_X1, ROI_Y1, ROI_X2,ROI_Y2);
+    Image_save(file_name,roi_data,(ROI_X2-ROI_X1)*(ROI_Y2-ROI_Y1)*3/2);
 
+        
     memset(file_name,0,sizeof(file_name));
+    memset(roi_data,0,(ROI_Y2-ROI_Y1)*(ROI_X2-ROI_X1)*3/2);
     //sprintf(file_name,"NV12_%dx%d_rigth_%d.yuv",IMAGE_X,IMAGE_Y,image_index);
     //Image_save(file_name,data+IMAGE_X*IMAGE_Y*3/2*3,IMAGE_X*IMAGE_Y*3/2);
     sprintf(file_name,"NV12_%dx%d_rigth_%d.yuv",IMAGE_X_VAILD,IMAGE_Y_VAILD,image_index);
-    intnv12_save(IMAGE_X,IMAGE_Y,IMAGE_X_VAILD,IMAGE_Y_VAILD,data+IMAGE_X*IMAGE_Y*3*3/2,file_name);
-    
+    //intnv12_save(IMAGE_X,IMAGE_Y,IMAGE_X_VAILD,IMAGE_Y_VAILD,data+IMAGE_X*IMAGE_Y*3*3/2,file_name);
+    nv12_roi(data+IMAGE_X*IMAGE_Y*3/2*3, IMAGE_X, IMAGE_Y,roi_data,  ROI_X1, ROI_Y1, ROI_X2,ROI_Y2);
+    Image_save(file_name,roi_data,(ROI_X2-ROI_X1)*(ROI_Y2-ROI_Y1)*3/2);
+#endif    
     printf("------%s fwrite NV12_xx_%d.yuv done\n", __func__,image_index);
 
 

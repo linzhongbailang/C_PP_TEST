@@ -44,17 +44,9 @@ project(linux_app_test)
 message(STATUS "CMAKE_C_COMPILER1 = ${CMAKE_C_COMPILER}")
 
 
-add_subdirectory(ipc_semaphore_test)
-add_subdirectory(test)
 
-add_subdirectory(ipc_share_mem_test/share_mem0)
-add_subdirectory(ipc_share_mem_test/share_mem1)
-add_subdirectory(ipc_share_mem_test/share_mem2)
-add_subdirectory(core_dumped_test)
-add_subdirectory(NV12_pro)
-add_subdirectory(slecet_test/slecet_host)
 
-#add_subdirectory(virtual_test)
 
-#add_executable(ipc_semaphore_test main.c)
+
+add_executable(slecet_host 	main.c)
 
